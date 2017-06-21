@@ -36,7 +36,7 @@ def mainloop(game_file_name):
     
     while True:
         chip8.emulate_cycle()
-        if (chip8.draw_flag == True):
+        if (chip8.should_draw == True):
             draw_pixels(screen_display, WIDTH, HEIGHT, pixel_color_state, chip8)
         events = pygame.event.get()
         get_key_press(events, key_input, chip8)
@@ -47,7 +47,7 @@ def draw_pixels(screen_display, width, height, pixel_color_state, chip8):
         for y in range(height):
             screen_display.fill(pixel_color_state[chip8.screen_pixel_states[x + (y * width)]], Rect(x * 10, y * 10, 10, 10))
     pygame.display.flip() # Update screen display
-    chip8.draw_flag = False # Set draw flag to False
+    chip8.should_draw = False # Set draw flag to False
     
 def get_key_press(events, keys, chip8):
     for event in events:

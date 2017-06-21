@@ -31,7 +31,7 @@ class MyChip8:
         self.opcode = 0
         self.stack = []
         self.screen_pixel_states = [0] * 2048 # Initialize 2048 pixels (64 x 32 screen) with states 1 (white) or 0 (black)
-        self.draw_flag = True # If flag is True, update screen
+        self.should_draw = True # If flag is True, update screen
         self.keys = [0] * 16 # Initialize key registers
         self.delay_timer = 0
         self.sound_timer = 0
@@ -52,8 +52,9 @@ class MyChip8:
     # 0x00E0 - Clear the screen
     def clear_screen(self):
         for pixel in range(len(self.screen_pixel_states)): # Set each pixel to state 0 (black)
-            self.screen_pixel_states[0];
-        self.draw_flag = True
+            self.screen_pixel_states[pixel] = 0;
+        self.should_draw = True
+        self.program_counter += 2
     
     # 0x00EE - Return from subroutine -> load address from stack
     def return_address(self):
@@ -65,9 +66,9 @@ class MyChip8:
         
     # 0x2NNN - Execute subroutine starting at address NNN
     def call_subroutine(self):
-        self.stack.append(self.program_counter)
-        self.program_counter = self.operation_code & 0x0FFF # Get NNN
         self.program_counter += 2
+        self.stack.append(self.program_counter)
+        self.program_counter = self.operation_code & 0x0FFF # Get NNN     
     
     # 0x3NNN - Skip the following instruction if the value of register VX equals NN
     def skip_if_equal(self):
@@ -129,7 +130,7 @@ class MyChip8:
             self.V[0xF] = 1
         else:
             self.V[0xF] = 0
-        self.V[self.x] & 0xFF
+        self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
         
     # 8XY5 - Subtract the value of register VY from register VX
@@ -141,7 +142,7 @@ class MyChip8:
         else:
             self.V[0xF] = 1
         self.V[self.x] -= self.V[self.x] 
-        self.V[self.x] & 0xFF
+        self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
     
     # 8XY6 - Store the value of register VY shifted right one bit in register VX
@@ -199,7 +200,6 @@ class MyChip8:
         x_coord = self.V[self.x]
         y_coord = self.V[self.y]
         self.V[0xF] = 0 # If pixel on display is set to 1, collision is registered by setting VF
-        pixel = 0
         
         for y in range(height): # Loop over each row
             pixel = self.memory[self.I + y] # Fetch pixel value at memory location
@@ -208,21 +208,19 @@ class MyChip8:
                     if self.screen_pixel_states[x_coord + x + ((y_coord + y) * 64)] == 1: # Check if current pixel is set to 1
                         self.V[0xF] = 1
                     self.screen_pixel_states[x_coord + x + ((y_coord + y) * 64)] ^= 1 # Set pixel value using XOR
-        self.draw_flag = True
+        self.should_draw = True
         self.program_counter += 2
                     
     # 0xEX9E - Skip the following instruction if the key corresponding to the hex value currently stored in register VX is pressed
     def skip_if_key_press(self):
-        x = self.operation_code & 0x0F00 >> 8
-        if self.keys[self.V[x]] == 1:
+        if self.keys[self.V[self.x]] == 1:
             self.program_counter += 4
         else:
             self.program_counter += 2
     
     # 0xEXA1 - Skip the following instruction if the key corresponding to the hex value currently stored in register VX is not pressed
     def skip_if_no_key_press(self):
-        x = self.operation_code & 0x0F00 >> 8
-        if self.keys[self.V[x]] == 0:
+        if self.keys[self.V[self.x]] == 0:
             self.program_counter += 4
         else:
             self.program_counter += 2
@@ -241,6 +239,8 @@ class MyChip8:
                 break
         if key_press > 0: # If a key register is pressed
             self.V[self.x] = key_press
+        else:
+            self.program_counter -= 2
         self.program_counter += 2
     
     # FX15 - Set the delay timer to the value of register VX
@@ -265,9 +265,9 @@ class MyChip8:
     
     # FX33 - Store the binary-coded decimal equivalent of the value stored in register VX at addresses I, I+1, and I+2
     def convert_to_binary(self):
-        self.memory[self.I] = self.V[self.x] / 100 # MSB
-        self.memory[self.I] = (self.V[self.x] / 10) % 10 
-        self.memory[self.I] = (self.V[self.x] % 100) % 10 # LSB 
+        self.memory[self.I] = self.V[self.x] // 100 # MSB
+        self.memory[self.I + 1] = (self.V[self.x] % 100) // 10 
+        self.memory[self.I + 2] = self.V[self.x] % 10 # LSB 
         self.program_counter += 2
     
     # FX55 - Store the values of registers V0 to VX inclusive in memory starting at address I
@@ -422,6 +422,7 @@ class MyChip8:
                 self.fill_registers()
         # Handle unknown opcode
         else:
+            print("Unknown instruction:" + hex(self.operation_code))
             self.program_counter += 2
         
         current_timer_value = time() # Get integer of current time
