@@ -334,9 +334,28 @@ def test_0x9XY0_equal(chip8):
         return 0 # Return false
     return 1
     
-        
-     
+# 0xANNN - set_I()
+def test_0xANNN(chip8):
+    chip8.initialize() # Reset values
+    chip8.operation_code = 0xA121
     
+    chip8.set_I()
+    if chip8.I != chip8.operation_code & 0x0FFF:
+        return 0
+    return 1        
+
+#0xBNNN - jump_first_register()    
+def test_0xBNNN(chip8):
+    chip8.initialize() # Reset values
+    chip8.operation_code = 0xBEEF
+    chip8.V[0] = 0x0014
+    
+    chip8.jump_first_register()
+    if chip8.program_counter != 0xEEF + 0x0014:
+        return 0
+    return 1
+
+
         
 def main():
     CHIP8 = mychip8.MyChip8()
@@ -366,6 +385,9 @@ def main():
     assert (test_0x8XYE(CHIP8)), "0x8XYE, shift_left() Error"
     assert (test_0x9XY0_unequal(CHIP8)), "0x9XY0, skip_if_registers_unequal() Error, Unequal Case"
     assert (test_0x9XY0_equal(CHIP8)), "0x9XY0, skip_if_registers_unequal() Error, Equal Case"
+    assert (test_0xANNN(CHIP8)), "0xANNN, set_I() Error"
+    test_0xBNNN(CHIP8)
+    assert (test_0xBNNN(CHIP8)), "0xBNNN, jump_first_register() Error"
     
 if __name__ == "__main__":
     main()
