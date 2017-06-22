@@ -27,7 +27,7 @@ class MyChip8:
         self.I = 0 # Index register
         self.stack_pointer = 0
         self.memory = [0] * 4096
-        self.program_counter = 0x200 # Program counter starts at 0x200
+        self.program_counter = 0x200 # Program counter starts at 0x200 since first 200 bytes are unused
         self.opcode = 0
         self.stack = []
         self.screen_pixel_states = [0] * 2048 # Initialize 2048 pixels (64 x 32 screen) with states 1 (white) or 0 (black)
@@ -112,12 +112,12 @@ class MyChip8:
         self.program_counter += 2 # Increment by 2
     
     # 8XY2 - Set VX to VX AND VY
-    def set_register_to_AND(self):
+    def set_register_AND(self):
         self.V[self.x] = self.V[self.x] & self.V[self.y] 
         self.program_counter += 2 # Increment by 2
     
     # 8XY3 - Set VX to VX XOR VY
-    def set_register_to_XOR(self):
+    def set_register_XOR(self):
         self.V[self.x] = self.V[self.x] ^ self.V[self.y] 
         self.program_counter += 2 # Increment by 2
         
@@ -125,7 +125,7 @@ class MyChip8:
     # Set VF to 01 if a carry occurs
     # Set VF to 00 if a carry does not occur
     def add_registers(self):
-        self.V[self.x] += self.V[self.x] 
+        self.V[self.x] += self.V[self.y] 
         if self.V[self.x] > 0xFF:
             self.V[0xF] = 1
         else:
@@ -141,7 +141,7 @@ class MyChip8:
             self.V[0xF] = 0
         else:
             self.V[0xF] = 1
-        self.V[self.x] -= self.V[self.x] 
+        self.V[self.x] -= self.V[self.y] 
         self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
     
@@ -161,7 +161,7 @@ class MyChip8:
         else:
             self.V[0xF] = 1
         self.V[self.x] = self.V[self.y] - self.V[self.x]
-        self.V[self.x] & 0xFF
+        self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
     
     # 8XYE - Store the value of register VY shifted left one bit in register VX
@@ -335,13 +335,13 @@ class MyChip8:
                 self.set_X_to_Y()
             # 8XY1 - Set VX to VX OR VY
             elif (self.operation_code & 0x000F == 0x0001):
-                self.set_register_to_OR()
+                self.set_register_OR()
             # 8XY2 - Set VX to VX AND VY
             elif (self.operation_code & 0x000F == 0x0002):
-                self.set_register_to_AND()
+                self.set_register_AND()
             # 8XY3 - Set VX to VX XOR VY
             elif (self.operation_code & 0x000F == 0x0003):
-                self.set_register_to_XOR()
+                self.set_register_XOR()
             # 8XY4 - Add the value of register VY to register VX 
             # Set VF to 01 if a carry occurs
             # Set VF to 00 if a carry does not occur
