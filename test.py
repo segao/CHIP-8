@@ -344,19 +344,78 @@ def test_0xANNN(chip8):
         return 0
     return 1        
 
-#0xBNNN - jump_first_register()    
+# 0xBNNN - jump_first_register()    
 def test_0xBNNN(chip8):
     chip8.initialize() # Reset values
     chip8.operation_code = 0xBEEF
     chip8.V[0] = 0x0014
     
     chip8.jump_first_register()
-    if chip8.program_counter != 0xEEF + 0x0014:
+    
+    if chip8.program_counter != 0x0EEF + 0x0014:
         return 0
     return 1
 
+# 0xCXNN - set_register_random()
+def test_0xCXNN(chip8):
+    chip8.initialize() # Reset values
+    chip8.set_register_random()
+    print(hex(chip8.V[chip8.x]))
 
+# 0xDXYN - draw_to_screen()
+def test_0xDXYN(chip8):
+    chip8.initialize()
+    chip8.operation_code = 0xD121
+    chip8.x = 1
+    chip8.y = 2
+    chip8.V[1] = 0
+    chip8.V[2] = 4
+    chip8.I = 0
+    
+    chip8.memory[chip8.I] = 0b10011001
+    
+    chip8.draw_to_screen()
+    
+    if (chip8.screen_pixel_states[256] != 1) or (chip8.screen_pixel_states[257] != 0) or (chip8.screen_pixel_states[258] != 0) or (chip8.screen_pixel_states[259] != 1) or (chip8.screen_pixel_states[260] != 1) or (chip8.screen_pixel_states[261] != 0) or (chip8.screen_pixel_states[262] != 0) or (chip8.screen_pixel_states[263] != 1):
+        return 0
+    return 1
+
+# 0xEX9E - skip_if_key_press()
+def test_0xEX9E(chip8):
+    chip8.initialize()
+    chip8.operation_code = 0xE19E
+    chip8.x = 1
+    chip8.keys[chip8.V[chip8.x]] = 1
+
+    chip8.skip_if_key_press()
+    if chip8.program_counter != 0x204:
+        return 0
+    return 1
         
+# 0xEXA1 - skip_if_no_key_press()
+def test_0xEXA1(chip8):
+    chip8.initialize()
+    chip8.operation_code = 0xE1A1
+    chip8.x = 1
+    chip8.keys[chip8.V[chip8.x]] = 0
+
+    chip8.skip_if_no_key_press()
+    if chip8.program_counter != 0x204:
+        return 0
+    return 1
+
+# 0xFX07 - set_register_to_delay()
+def test_0xFX07(chip8):
+    chip8.initialize()
+    chip8.x = 1
+    chip8.delay_timer = 10
+    chip8.set_register_to_delay()
+    
+    if chip8.V[chip8.x] != chip8.delay_timer:
+        return 0
+    return 1
+    
+    
 def main():
     CHIP8 = mychip8.MyChip8()
     assert (test_0x00E0(CHIP8)), "0x00E0, clear_screen() Error"
@@ -386,8 +445,12 @@ def main():
     assert (test_0x9XY0_unequal(CHIP8)), "0x9XY0, skip_if_registers_unequal() Error, Unequal Case"
     assert (test_0x9XY0_equal(CHIP8)), "0x9XY0, skip_if_registers_unequal() Error, Equal Case"
     assert (test_0xANNN(CHIP8)), "0xANNN, set_I() Error"
-    test_0xBNNN(CHIP8)
     assert (test_0xBNNN(CHIP8)), "0xBNNN, jump_first_register() Error"
+    test_0xCXNN(CHIP8)
+    assert (test_0xDXYN(CHIP8)), "0xDXYN, draw_to_screen()) Error"
+    assert (test_0xEX9E(CHIP8)), "0xEX9E, skip_if_key_press()) Error"
+    assert (test_0xEXA1(CHIP8)), "0xEXA1, skip_if_no_key_press()) Error"
+    assert (test_0xFX07(CHIP8)), "0xFX07, set_register_to_delay()) Error"
     
 if __name__ == "__main__":
     main()

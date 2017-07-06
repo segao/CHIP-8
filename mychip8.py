@@ -101,27 +101,27 @@ class MyChip8:
         self.V[self.x] += self.operation_code & 0x00FF # Get NN
         self.program_counter += 2 # Increment by 2
         
-    # 8XY0 - Store the value of register VY in register VX
+    # 0x8XY0 - Store the value of register VY in register VX
     def set_X_to_Y(self):
         self.V[self.x] = self.V[self.y]
         self.program_counter += 2 # Increment by 2
     
-    # 8XY1 - Set VX to VX OR VY
+    # 0x8XY1 - Set VX to VX OR VY
     def set_register_OR(self):
         self.V[self.x] = self.V[self.x] | self.V[self.y] 
         self.program_counter += 2 # Increment by 2
     
-    # 8XY2 - Set VX to VX AND VY
+    # 0x8XY2 - Set VX to VX AND VY
     def set_register_AND(self):
         self.V[self.x] = self.V[self.x] & self.V[self.y] 
         self.program_counter += 2 # Increment by 2
     
-    # 8XY3 - Set VX to VX XOR VY
+    # 0x8XY3 - Set VX to VX XOR VY
     def set_register_XOR(self):
         self.V[self.x] = self.V[self.x] ^ self.V[self.y] 
         self.program_counter += 2 # Increment by 2
         
-    # 8XY4 - Add the value of register VY to register VX 
+    # 0x8XY4 - Add the value of register VY to register VX 
     # Set VF to 01 if a carry occurs
     # Set VF to 00 if a carry does not occur
     def add_registers(self):
@@ -133,7 +133,7 @@ class MyChip8:
         self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
         
-    # 8XY5 - Subtract the value of register VY from register VX
+    # 0x8XY5 - Subtract the value of register VY from register VX
     # Set VF to 00 if a borrow occurs
     # Set VF to 01 if a borrow does not occur
     def subtract_registers(self):
@@ -145,14 +145,14 @@ class MyChip8:
         self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
     
-    # 8XY6 - Store the value of register VY shifted right one bit in register VX
+    # 0x8XY6 - Store the value of register VY shifted right one bit in register VX
     # Set register VF to the least significant bit prior to the shift
     def shift_right(self):
         self.V[0xF] = self.V[self.y] & 0x01
         self.V[self.x] = self.V[self.y] >> 1
         self.program_counter += 2 # Increment by 2
         
-    # 8XY7 - Set register VX to the value of VY minus VX
+    # 0x8XY7 - Set register VX to the value of VY minus VX
     # Set VF to 00 if a borrow occurs
     # Set VF to 01 if a borrow does not occur
     def subtract_registers_reversed(self):
@@ -164,7 +164,7 @@ class MyChip8:
         self.V[self.x] &= 0xFF
         self.program_counter += 2 # Increment by 2
     
-    # 8XYE - Store the value of register VY shifted left one bit in register VX
+    # 0x8XYE - Store the value of register VY shifted left one bit in register VX
     # Set register VF to the most significant bit prior to the shift
     def shift_left(self):
         self.V[0xF] = self.V[self.y] & 0x80
@@ -185,7 +185,7 @@ class MyChip8:
         
     # 0xBNNN - Jump to address NNN + V0
     def jump_first_register(self):
-        self.program_counter = self.operation_code & 0x0FFF + self.V[0]
+        self.program_counter = (self.operation_code & 0x0FFF) + self.V[0]
     
     # 0xCXNN - Set VX to a random number with a mask of NN
     def set_register_random(self):
@@ -225,12 +225,12 @@ class MyChip8:
         else:
             self.program_counter += 2
         
-    # FX07 - Store the current value of the delay timer in register VX
+    # 0xFX07 - Store the current value of the delay timer in register VX
     def set_register_to_delay(self):
         self.V[self.x] = self.delay_timer
         self.program_counter += 2
         
-    # FX0A - Wait for a keypress and store the result in register VX    
+    # 0xFX0A - Wait for a keypress and store the result in register VX    
     def wait_for_key_press(self):
         key_press = -1
         for key in range(len(self.keys)): # Iterate through key registers
@@ -243,34 +243,34 @@ class MyChip8:
             self.program_counter -= 2
         self.program_counter += 2
     
-    # FX15 - Set the delay timer to the value of register VX
+    # 0xFX15 - Set the delay timer to the value of register VX
     def set_delay_timer(self):
         self.delay_timer = self.V[self.x]
         self.program_counter += 2
         
-    # FX18 - Set the sound timer to the value of register VX
+    # 0xFX18 - Set the sound timer to the value of register VX
     def set_sound_timer(self):
         self.sound_timer = self.V[self.x]
         self.program_counter += 2
     
-    # FX1E - Add the value stored in register VX to register I
+    # 0xFX1E - Add the value stored in register VX to register I
     def add_I(self):
         self.I += self.V[self.x]
         self.program_counter += 2
     
-    # FX29 - Set I to the memory address of the sprite data corresponding to the hexadecimal digit stored in register VX
+    # 0xFX29 - Set I to the memory address of the sprite data corresponding to the hexadecimal digit stored in register VX
     def set_I_to_address(self):
         self.I = self.V[self.x] * 5 # 5 values for each character
         self.program_counter += 2
     
-    # FX33 - Store the binary-coded decimal equivalent of the value stored in register VX at addresses I, I+1, and I+2
+    # 0xFX33 - Store the binary-coded decimal equivalent of the value stored in register VX at addresses I, I+1, and I+2
     def convert_to_binary(self):
         self.memory[self.I] = self.V[self.x] // 100 # MSB
         self.memory[self.I + 1] = (self.V[self.x] % 100) // 10 
         self.memory[self.I + 2] = self.V[self.x] % 10 # LSB 
         self.program_counter += 2
     
-    # FX55 - Store the values of registers V0 to VX inclusive in memory starting at address I
+    # 0xFX55 - Store the values of registers V0 to VX inclusive in memory starting at address I
     # I is set to I + X + 1 after operation
     def store_registers_in_memory(self):
         for register in range(self.x + 1):
@@ -278,7 +278,7 @@ class MyChip8:
         self.I += self.x + 1
         self.program_counter += 2
     
-    # FX65 - Fill registers V0 to VX inclusive with the values stored in memory starting at address I
+    # 0xFX65 - Fill registers V0 to VX inclusive with the values stored in memory starting at address I
     # I is set to I + X + 1 after operation
     def fill_registers(self):
         for register in range(self.x + 1):
