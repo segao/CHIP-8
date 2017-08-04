@@ -457,7 +457,66 @@ def test_0xFX1E(chip8):
     if old_I != (chip8.I - chip8.V[chip8.x]):
         return 0
     return 1
+
+# 0xFX29 - set_I_to_address()
+def test_0xFX29(chip8):
+    chip8.initialize
+    chip8.x = 1
+    chip8.V[chip8.x] = 3
+    chip8.set_I_to_address()
     
+    if chip8.I != 15:
+        return 0
+    return 1
+    
+# 0xFX33 - convert_to_binary()
+def test_0xFX33(chip8):
+    chip8.initialize
+    chip8.x = 1
+    chip8.V[chip8.x] = 369
+    chip8.convert_to_binary()
+    
+    if chip8.memory[chip8.I] != 3 or chip8.memory[chip8.I + 1] != 6 or chip8.memory[chip8.I + 2] != 9:
+        return 0
+    return 1
+    
+# 0xFX55 - store_registers_in_memory()
+def test_0xFX55(chip8):
+    chip8.initialize
+    chip8.x = 5
+    chip8.V[0] = 0
+    chip8.V[1] = 1
+    chip8.V[2] = 2
+    chip8.V[3] = 3
+    chip8.V[4] = 4
+    chip8.V[chip8.x] = 5
+
+    old_I = chip8.I
+    chip8.store_registers_in_memory()
+    
+    if chip8.memory[old_I] != 0 or chip8.memory[old_I + 1] != 1 or chip8.memory[old_I + 2] != 2 or chip8.memory[old_I + 3] != 3 or chip8.memory[old_I + 4] != 4 or chip8.memory[old_I + 5] != 5 or chip8.I != old_I + 6:
+        return 0
+    return 1
+    
+# 0xFX65 - fill_registers()
+def test_0xFX65(chip8):
+    chip8.initialize
+    chip8.memory[chip8.I] = 0
+    chip8.memory[chip8.I + 1] = 1
+    chip8.memory[chip8.I + 2] = 2
+    chip8.memory[chip8.I + 3] = 3
+    chip8.memory[chip8.I + 4] = 4
+    chip8.memory[chip8.I + 5] = 5
+    chip8.x = 5
+    old_I = chip8.I
+    
+    chip8.fill_registers()
+    
+    if chip8.V[0] != 0 or chip8.V[1] != 1 or chip8.V[2] != 2 or chip8.V[3] != 3 or chip8.V[4] != 4 or chip8.V[5] != 5 or chip8.I != old_I + 6:
+        return 0
+    return 1
+    
+
 def main():
     CHIP8 = mychip8.MyChip8()
     assert (test_0x00E0(CHIP8)), "0x00E0, clear_screen() Error"
@@ -497,6 +556,10 @@ def main():
     assert (test_0xFX15(CHIP8)), "0xFX15, set_delay_timer() Error"
     assert (test_0xFX18(CHIP8)), "0xFX18, set_delay_timer() Error"
     assert (test_0xFX1E(CHIP8)), "0xFX1E, add_I() Error"
+    assert (test_0xFX29(CHIP8)), "0xFX29, set_I_to_address() Error"
+    assert (test_0xFX33(CHIP8)), "0xFX33, convert_to_binary() Error"
+    assert (test_0xFX55(CHIP8)), "0xFX55, store_registers_in_memory() Error"
+    assert (test_0xFX65(CHIP8)), "0xFX65, fill_registers() Error"
     
 if __name__ == "__main__":
     main()
