@@ -415,6 +415,48 @@ def test_0xFX07(chip8):
         return 0
     return 1
     
+# 0xFX0A - wait_for_key_press()
+def test_0xFX0A(chip8):
+    chip8.initialize()
+    chip8.keys[3] = 1
+    chip8.wait_for_key_press()
+    if chip8.V[chip8.x] != 3:
+        return 0
+    return 1
+    
+# 0xFX15 - set_delay_timer()
+def test_0xFX15(chip8):
+    chip8.initialize()
+    chip8.x = 1
+    chip8.V[chip8.x] = 88
+    chip8.set_delay_timer()
+    
+    if chip8.delay_timer != chip8.V[chip8.x]:
+        return 0
+    return 1
+    
+# 0xFX18 - set_sound_timer()
+def test_0xFX18(chip8):
+    chip8.initialize()
+    chip8.x = 1
+    chip8.V[chip8.x] = 88
+    chip8.set_sound_timer()
+    
+    if chip8.sound_timer != chip8.V[chip8.x]:
+        return 0
+    return 1
+    
+# 0xFX1E - add_I()
+def test_0xFX1E(chip8):
+    chip8.initialize
+    chip8.x = 1
+    chip8.V[chip8.x] = 20
+    old_I = chip8.I
+    chip8.add_I()
+    
+    if old_I != (chip8.I - chip8.V[chip8.x]):
+        return 0
+    return 1
     
 def main():
     CHIP8 = mychip8.MyChip8()
@@ -447,10 +489,14 @@ def main():
     assert (test_0xANNN(CHIP8)), "0xANNN, set_I() Error"
     assert (test_0xBNNN(CHIP8)), "0xBNNN, jump_first_register() Error"
     test_0xCXNN(CHIP8)
-    assert (test_0xDXYN(CHIP8)), "0xDXYN, draw_to_screen()) Error"
-    assert (test_0xEX9E(CHIP8)), "0xEX9E, skip_if_key_press()) Error"
-    assert (test_0xEXA1(CHIP8)), "0xEXA1, skip_if_no_key_press()) Error"
-    assert (test_0xFX07(CHIP8)), "0xFX07, set_register_to_delay()) Error"
+    assert (test_0xDXYN(CHIP8)), "0xDXYN, draw_to_screen() Error"
+    assert (test_0xEX9E(CHIP8)), "0xEX9E, skip_if_key_press() Error"
+    assert (test_0xEXA1(CHIP8)), "0xEXA1, skip_if_no_key_press() Error"
+    assert (test_0xFX07(CHIP8)), "0xFX07, set_register_to_delay() Error"
+    assert (test_0xFX0A(CHIP8)), "0xFX0A, wait_for_key_press() Error"
+    assert (test_0xFX15(CHIP8)), "0xFX15, set_delay_timer() Error"
+    assert (test_0xFX18(CHIP8)), "0xFX18, set_delay_timer() Error"
+    assert (test_0xFX1E(CHIP8)), "0xFX1E, add_I() Error"
     
 if __name__ == "__main__":
     main()
